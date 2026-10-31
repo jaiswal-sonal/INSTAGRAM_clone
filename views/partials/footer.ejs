@@ -1,16 +1,36 @@
 <% if(footer){ %>
-    <div class="footer text-white flex justify-between items-center w-full fixed bottom-0 z-[10] bg-zinc-900 px-10 py-3">
-        <a href="/feed"><i class="text-[1.4rem] ri-home-line"></i></a>
-        <a href="/search"><i class="text-[1.4rem] ri-search-line"></i></a>
-        <a href="/upload"><i class="text-[1.4rem] ri-add-box-line"></i></a>
-        <a href="/profile">
-          <div class="w-8 h-8 bg-zinc-300 rounded-full overflow-hidden">
-            <img class="w-full h-full object-cover" src="/images/uploads/<%= user.picture %>" alt="">
-          </div>
-        </a>
-      </div>
+    </main>
+    <script>
+      (function () {
+        var p = location.pathname.replace(/\/$/, "") || "/";
+        document.querySelectorAll(".ig-link[data-path]").forEach(function (a) {
+          if (a.getAttribute("data-path") === p) {
+            a.classList.add("active");
+            var i = a.querySelector("i");
+            if (i) i.className = i.className.replace("-line", "-fill");
+          }
+        });
+      })();
+
+      // light / dark switch (remembered in the browser)
+      (function () {
+        function isDark() { return document.documentElement.getAttribute("data-theme") === "dark"; }
+        function paint() {
+          document.querySelectorAll(".theme-toggle i").forEach(function (i) {
+            i.className = isDark() ? "ri-sun-line" : "ri-moon-line";
+          });
+        }
+        document.querySelectorAll(".theme-toggle").forEach(function (b) {
+          b.addEventListener("click", function () {
+            if (isDark()) document.documentElement.removeAttribute("data-theme");
+            else document.documentElement.setAttribute("data-theme", "dark");
+            try { localStorage.setItem("theme", isDark() ? "dark" : "light"); } catch (e) {}
+            paint();
+          });
+        });
+        paint();
+      })();
+    </script>
 <% } %>
-
-
 </body>
 </html>

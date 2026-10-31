@@ -19,7 +19,7 @@ router.get("/login", function (req, res) {
   res.render("login", { footer: false });
 });
 
-router.get("/like/:postid", async function (req, res) {
+router.get("/like/:postid", isLoggedIn, async function (req, res) {
   const post = await postModel.findOne({ _id: req.params.postid });
   const user = await userModel.findOne({ username: req.session.passport.user });
   if (post.like.indexOf(user._id) === -1) {
@@ -73,7 +73,7 @@ router.get("/profile/:user", isLoggedIn, async function (req, res) {
   let user = await userModel.findOne({ username: req.session.passport.user });
 
   if (user.username === req.params.user) {
-    res.redirect("/profile");
+    return res.redirect("/profile");
   }
 
   let userprofile = await userModel
@@ -126,7 +126,8 @@ router.get("/save/:postid", isLoggedIn, async function (req, res) {
 });
 
 router.get("/search/:user", isLoggedIn, async function (req, res) {
-  const searchTerm = `^${req.params.user}`;
+  const escaped = req.params.user.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const searchTerm = `^${escaped}`;
   const regex = new RegExp(searchTerm);
 
   let users = await userModel.find({ username: { $regex: regex } });
@@ -181,6 +182,10 @@ router.post(
       username: req.session.passport.user,
     });
 
+    if (!req.file) {
+      return res.send("Pehle picture select karo, phir post karo. <a href='/upload'>Wapas</a>");
+    }
+
     if (req.body.category === "post") {
       const post = await postModel.create({
         user: user._id,
@@ -195,7 +200,7 @@ router.post(
       });
       user.stories.push(story._id);
     } else {
-      res.send("tez mat chalo");
+      return res.send("tez mat chalo");
     }
 
     await user.save();
@@ -211,6 +216,7 @@ router.post(
     const user = await userModel.findOne({
       username: req.session.passport.user,
     });
+    if (!req.file) return res.redirect("/edit");
     user.picture = req.file.filename;
     await user.save();
     res.redirect("/edit");
@@ -226,11 +232,19 @@ router.post("/register", function (req, res) {
     name: req.body.name,
   });
 
-  userModel.register(user, req.body.password).then(function (registereduser) {
-    passport.authenticate("local")(req, res, function () {
-      res.redirect("/profile");
+  userModel
+    .register(user, req.body.password)
+    .then(function (registereduser) {
+      passport.authenticate("local")(req, res, function () {
+        res.redirect("/profile");
+      });
+    })
+    .catch(function (err) {
+      console.error("Register error:", err.message);
+      res.status(400).send(
+        "Register nahi hua: " + err.message + " <a href='/'>Wapas jao</a>"
+      );
     });
-  });
 });
 
 router.post(
@@ -242,7 +256,7 @@ router.post(
   function (req, res) {}
 );
 
-router.get("/logout", function (req, res) {
+router.get("/logout", function (req, res, next) {
   req.logout(function (err) {
     if (err) {
       return next(err);

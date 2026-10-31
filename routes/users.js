@@ -1,7 +1,15 @@
 const mongoose = require('mongoose');
 const plm = require("passport-local-mongoose");
 
-mongoose.connect("mongodb://127.0.0.1:27017/instainsta");
+const MONGO_URL = process.env.MONGO_URL || "mongodb://127.0.0.1:27017/instainsta";
+mongoose
+  .connect(MONGO_URL, { serverSelectionTimeoutMS: 5000 })
+  .then(() => console.log("MongoDB connected:", MONGO_URL))
+  .catch((err) => {
+    console.error("\n*** MongoDB se connect nahi ho paya ***");
+    console.error("MongoDB chalu hai? (mongod / MongoDB Compass / Atlas URL check karo)");
+    console.error(err.message, "\n");
+  });
 
 const userSchema = mongoose.Schema({
   username: String,

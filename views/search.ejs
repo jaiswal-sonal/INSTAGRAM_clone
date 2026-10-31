@@ -1,43 +1,47 @@
 <% include ./partials/header.ejs %>
-    <div class="w-full min-h-screen bg-zinc-900 px-4 py-5">
-        <div class="border-2 border-zinc-800 flex items-center justify-between px-2 py-1 rounded-md">
-            <i class="text-white ri-search-line"></i>
-            <input class="input ml-1 w-full bg-zinc-900 outline-none text-zinc-400" type="text"
-                placeholder="search username">
-        </div>
-        <div class="users">
-
-        </div>
+  <div class="page-narrow">
+    <h1 class="page-title">Search</h1>
+    <div class="search-box">
+      <i class="ri-search-line"></i>
+      <input class="input" type="text" placeholder="Search by username" autocomplete="off" aria-label="Search by username">
     </div>
+    <div class="users"></div>
+  </div>
 
-    <script>
-        var inp = document.querySelector(".input")
+  <script>
+    var inp = document.querySelector(".input");
+    var box = document.querySelector(".users");
+    var latest = 0;
 
-        inp.addEventListener("input", function (e) {
-            if (inp.value !== '') {
-                fetch(`/search/${inp.value}`)
-                    .then(raw => raw.json())
-                    .then(result => {
-                        let clutter = "";
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
 
-                        result.forEach((item) => {
-                            clutter += `<a href="/profile/${item.username}" class="outline-none">
-            <div class="text-white flex items-center gap-2 mt-5">
-                <div class="image w-[11vw] h-[11vw] rounded-full bg-sky-100 overflow-hidden">
-                    <img src="/images/uploads/${item.picture}" alt="">
-                    </div>
-                <div class="text">
-                    <h3>${item.username}</h3>
-                    <h4 class="text-xs opacity-30 leading-none">${item.name}</h4>
-                </div>
-            </div>            
-        </a>`
-                        })
+    inp.addEventListener("input", function () {
+      var q = inp.value.trim();
+      var ticket = ++latest;
+      if (q === "") { box.innerHTML = ""; return; }
 
-                        document.querySelector(".users")
-                            .innerHTML = clutter;
-                    });
-            }
+      fetch("/search/" + encodeURIComponent(q))
+        .then(function (raw) { return raw.json(); })
+        .then(function (result) {
+          if (ticket !== latest) return; // ignore old responses
+          if (result.length === 0) {
+            box.innerHTML = '<p class="search-note">No users found for "' + esc(q) + '".</p>';
+            return;
+          }
+          box.innerHTML = result.map(function (item) {
+            return '<a class="result" href="/profile/' + encodeURIComponent(item.username) + '">' +
+              '<img class="av av-44" src="/images/uploads/' + esc(item.picture) + '" alt="">' +
+              '<div class="who"><b>' + esc(item.username) + '</b><span class="muted">' + esc(item.name) + '</span></div>' +
+              '</a>';
+          }).join("");
         })
-    </script>
-    <% include ./partials/footer.ejs %>
+        .catch(function () {
+          if (ticket === latest) box.innerHTML = '<p class="search-note">Something went wrong. Try again.</p>';
+        });
+    });
+  </script>
+<% include ./partials/footer.ejs %>

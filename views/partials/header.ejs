@@ -3,9 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Instagram</title>
+    <script>
+      try { var t = localStorage.getItem("theme"); if (t === "dark") document.documentElement.setAttribute("data-theme", "dark"); } catch (e) {}
+    </script>
     <link rel="stylesheet" href="/stylesheets/style.css">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.6.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
+<% if(footer){ %>
+    <nav class="ig-nav" aria-label="Main">
+        <a class="ig-brand" href="/feed" aria-label="Instagram">
+            <img class="ig-logo-img" src="/images/logo.png" alt="Instagram">
+            <i class="ri-instagram-line"></i>
+        </a>
+        <a class="ig-link" data-path="/feed" href="/feed" aria-label="Home"><i class="ri-home-4-line"></i><span class="ig-label">Home</span></a>
+        <a class="ig-link" data-path="/search" href="/search" aria-label="Search"><i class="ri-search-line"></i><span class="ig-label">Search</span></a>
+        <a class="ig-link" data-path="/upload" href="/upload" aria-label="Create"><i class="ri-add-box-line"></i><span class="ig-label">Create</span></a>
+        <a class="ig-link" data-path="/profile" href="/profile" aria-label="Profile">
+            <img class="av" src="/images/uploads/<%= user.picture %>" alt="">
+            <span class="ig-label">Profile</span>
+        </a>
+        <button type="button" class="ig-link ig-theme theme-toggle" aria-label="Switch appearance"><i class="ri-moon-line"></i><span class="ig-label">Switch appearance</span></button>
+        <a class="ig-link ig-logout" href="/logout" aria-label="Log out"><i class="ri-logout-box-r-line"></i><span class="ig-label">Log out</span></a>
+    </nav>
+    <main class="ig-main">
+<% } %>
